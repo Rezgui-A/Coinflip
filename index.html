@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=400, initial-scale=0.25, maximum-scale=0.25, user-scalable=no">    <title>Coin Flip</title>
+    <style>
+    
+    /* Add this at the top of your style section */
+@font-face {
+    font-family: 'Joystix';
+    src: url('fonts/joystix monospace.woff2') format('woff2'),
+         url('fonts/joystix monospace.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Apply Joystix to all text elements */
+body, button, span, div {
+    font-family: 'Joystix', monospace;
+    letter-spacing: 1px;
+}
+body {
+    width: 800px;
+    margin: 0 auto;
+    transform-origin: top left;
+    transform: scale(1.2);
+    overflow-x: hidden;
+    background-color: black;
+}
+        .timer {
+            background-image: url('images/bg-3.jpg');
+            background-size: cover;
+            background-position: center;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        .timer::before {
+    content: "⏱";
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+/* When time is running low (last 5 seconds) */
+.timer.warning {
+    color: #ff5555;
+    border-color: #ff5555;
+    animation: pulse 0.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+        .place-vote {
+            background-image: url('images/bg-4.jpg');
+            background-size: cover;
+            background-position: center;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+.history-panel {
+    position: relative;
+    padding: 2rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    min-height: 400px; /* Add this line to ensure minimum height */
+}
+
+.history-panel-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('images/coinflipgrid.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat; /* Add this to prevent repeating */
+}
+.coin-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    max-width: 50px; /* Adjust based on your image size */
+    max-height: 50px;
+}
+        .history-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .panel-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 3px black;
+        }
+        
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+    gap: 12px; /* Equal gap on all sides */
+    margin-left: -30px; /* Counteract padding to align with background */
+    margin-right: -31px;
+    margin-top: -20px;
+        margin-bottom: -25px;
+
+        }
+        
+
+
+
+        
+/* Updated voting section styles */
+.place-vote {
+    background-image: url('images/bg-4.jpg');
+    background-size: cover;
+    background-position: center;
+    padding: 1.5rem;
+    color: white;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+.vote-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.round-number {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 2px solid #fff;
+    font-size: 1.2rem;
+    color: gold;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.vote-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vote-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 40%;
+}
+
+.vote-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vote-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    text-align: center;
+    border: 2px solid #000;
+    box-shadow: 3px 3px 0 #000;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.vote-btn:hover:not(:disabled) {
+    top: -2px;
+    left: -2px;
+    box-shadow: 5px 5px 0 #000;
+}
+
+.vote-btn:active:not(:disabled) {
+    top: 2px;
+    left: 2px;
+    box-shadow: 1px 1px 0 #000;
+}
+
+.vote-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    top: 2px;
+    left: 2px;
+    box-shadow: 1px 1px 0 #000;
+}
+
+.heads-btn {
+    background-color: #1C4FE1;
+    color: white;
+}
+
+.tails-btn {
+    background-color: #f44336; /* Red */
+    color: white;
+}
+
+.vote-results {
+    width: 55%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.result-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.result-label {
+    font-size: 0.9rem;
+    min-width: 60px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.result-bar-container {
+    flex-grow: 1;
+    height: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 2px solid #000;
+}
+
+.bar-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.heads-fill {
+    background-color: #1C4FE1; 
+}
+
+.tails-fill {
+    background-color: #f44336; /* Red */
+}
+
+.result-percentage {
+    min-width: 40px;
+    text-align: right;
+    font-size: 0.9rem;
+    text-shadow: 1px 1px 0 #000;
+}
+.round-display {
+    position: absolute;
+    bottom: 135px;
+    margin-left:460px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: 2px solid gold;
+    font-family: 'Joystix', monospace;
+    color: gold;
+    text-shadow: 2px 2px 0 #000;
+    font-size: 1.2rem;
+    z-index: 3; /* Make sure it appears above the background */
+}
+
+.round-display span {
+    color: white;
+    margin-left: 10px;
+}
+        /* Keep all other existing styles */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="timer" id="vote-timer">20s before voting ends</div>
+
+
+        <div class="coin-display">
+            <div id="round-status"></div>
+        </div>
+
+    <div class="history-panel">
+        
+        <div class="history-panel-background"></div>
+        <div class="history-content">
+            <div class="history-grid" id="game-board"></div>
+        </div>
+
+    </div>
+    </div>
+<div class = "end">
+<div class="place-vote">
+
+    <div class="vote-header">PLACE YOUR VOTE</div>
+        <div class="round-display">
+        HAND <span id="current-round">1</span> OF 80
+    </div>
+    <div class="vote-container">
+        <div class="vote-buttons">
+                 <button id="vote-heads" class="vote-btn heads-btn">Heads</button>
+                <button id="vote-tails" class="vote-btn tails-btn">Tails</button>
+        </div>
+        <div class="vote-results">
+            <div class="result-item">
+                <span class="result-label">HEADS:</span>
+                <div class="result-bar-container">
+                    <div class="bar-fill heads-fill" id="heads-bar" style="width: 50%"></div>
+                </div>
+                <span class="result-percentage" id="heads-votes">0 (0%)</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">TAILS:</span>
+                <div class="result-bar-container">
+                    <div class="bar-fill tails-fill" id="tails-bar" style="width: 50%"></div>
+                </div>
+                <span class="result-percentage" id="tails-votes">0 (0%)</span>
+            </div>
+        </div>
+
+    </div>
+</div></div>
+
+    <script>
+        // Game state
+        const gameState = {
+            results: [],
+            headsCount: 0,
+            tailsCount: 0,
+            currentRound: 1,
+            maxRounds: 80,
+            votes: { heads: 0, tails: 0 },
+            roundStartTime: null,
+            userVoted: false,
+            userVotes: {},
+            pulseIndex: 0,
+            currentServerRound: 1, // Track server's current round
+        };
+
+        // DOM elements
+        const gameBoard = document.getElementById('game-board');
+        const headsCountEl = document.getElementById('heads-count');
+        const tailsCountEl = document.getElementById('tails-count');
+        const roundNumberEl = document.getElementById('round-number');
+        const currentResultEl = document.getElementById('current-result');
+        const coinDisplayEl = document.getElementById('coin-display');
+        const voteHeadsBtn = document.getElementById('vote-heads');
+        const voteTailsBtn = document.getElementById('vote-tails');
+        const voteTimerEl = document.getElementById('vote-timer');
+        const headsVotesEl = document.getElementById('heads-votes');
+        const tailsVotesEl = document.getElementById('tails-votes');
+        const headsBarEl = document.getElementById('heads-bar');
+        const tailsBarEl = document.getElementById('tails-bar');
+        const roundStatusEl = document.getElementById('round-status');
+const currentRoundEl = document.getElementById('current-round'); // Add this line
+        // API endpoints
+        const API_URL = 'http://localhost:3001/api';
+
+        // Initialize game
+        async function initializeGame() {
+            // Load user's vote history from localStorage
+            gameState.userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+            
+            // Fetch current game state from server
+            await fetchGameState();
+            
+            // Start game loop
+            startGame();
+            startVoting();
+        }
+
+        // Fetch game state from server
+        async function fetchGameState() {
+            try {
+                const response = await fetch(`${API_URL}/game`);
+                const data = await response.json();
+                
+                gameState.results = data.results;
+                gameState.currentRound = data.currentRound;
+                gameState.currentServerRound = data.currentRound; // Update server round
+                gameState.votes = data.votes;
+                gameState.roundStartTime = new Date(data.roundStartTime).getTime();
+                        currentRoundEl.textContent = gameState.currentRound; // Add this line
+
+                // Calculate stats
+                gameState.headsCount = gameState.results.filter(r => r === 'H').length;
+                gameState.tailsCount = gameState.results.filter(r => r === 'T').length;
+                
+                // Check if user has voted in current round
+                gameState.userVoted = gameState.userVotes[gameState.currentRound] !== undefined;
+                
+                renderGame();
+                                clearVoteIfNewRound(); // call this right after updating round
+
+                updateVoteDisplay();
+                updateVoteButtons();
+
+            } catch (error) {
+                console.error('Error fetching game state:', error);
+            }
+        }
+
+        // Submit a vote to the server
+        async function submitVote(choice) {
+            try {
+                if (gameState.userVoted) {
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ choice })
+                });
+                
+                if (response.ok) {
+                    gameState.userVotes[gameState.currentRound] = choice;
+                    localStorage.setItem('userVotes', JSON.stringify(gameState.userVotes));
+                    gameState.userVoted = true;
+                    updateVoteButtons();
+                    await fetchGameState();
+                }
+            } catch (error) {
+                console.error('Error submitting vote:', error);
+            }
+        }
+        // Render the game board
+ function renderGame() {
+        gameBoard.innerHTML = '';
+        
+        // Create a 12x7 grid (84 positions)
+        const columns = 12;
+        const rows = 7;
+        const totalGrids = columns * rows;
+        
+        // Fill the grid column-wise (top to bottom, then left to right)
+        for (let col = 1; col <= columns; col++) {
+            for (let row = 1; row <= rows; row++) {
+                const positionIndex = (col - 1) * rows + (row - 1);
+                const resultEl = document.createElement('div');
+                resultEl.className = 'history-item';
+                
+                // Position the item in the grid
+                resultEl.style.gridRow = row;
+                resultEl.style.gridColumn = col;
+                
+                // Check if we have a result for this position
+                if (positionIndex < gameState.results.length) {
+                    const result = gameState.results[positionIndex];
+                    const img = document.createElement('img');
+                    
+                    if (result === 'H') {
+                        img.src = 'images/banker.png';
+                        img.alt = 'Banker';
+                        resultEl.classList.add('heads');
+                    } else if (result === 'T') {
+                        img.src = 'images/player.png';
+                        img.alt = 'Player';
+                        resultEl.classList.add('tails');
+                    } else {
+                        img.src = 'images/tie.png';
+                        img.alt = 'Tie';
+                        resultEl.classList.add('tie');
+                    }
+                    
+                    img.className = 'coin-image';
+                    resultEl.appendChild(img);
+                }
+                
+                gameBoard.appendChild(resultEl);
+            }
+        }
+    }
+ 
+
+
+
+
+  
+
+        // Start the game loop
+        function startGame() {
+            // Refresh game state every second
+            setInterval(async () => {
+                await fetchGameState();
+            }, 1000);
+        }
+
+        // Voting functions
+        function startVoting() {
+            updateVoteButtons();
+            
+            // Set up vote buttons
+            voteHeadsBtn.addEventListener('click', () => castVote('heads'));
+            voteTailsBtn.addEventListener('click', () => castVote('tails'));
+            
+            // Start vote timer
+            startVoteTimer();
+        }
+
+        async function castVote(choice) {
+            if (gameState.userVoted) return;
+            
+            await submitVote(choice);
+        }
+        function updateVoteButtons() {
+            // Check if server has moved to a new round
+            const isNewRound = gameState.currentServerRound !== gameState.currentRound;
+            
+            // Reset voting status if it's a new round
+            if (isNewRound) {
+                gameState.userVoted = false;
+                gameState.currentServerRound = gameState.currentRound;
+            }
+            
+            // Disable voting if user already voted this round
+            const shouldDisable = gameState.userVoted;
+            voteHeadsBtn.disabled = shouldDisable;
+            voteTailsBtn.disabled = shouldDisable;
+            
+            if (gameState.userVoted) {
+                const userChoice = gameState.userVotes[gameState.currentRound];
+                roundStatusEl.style.color = userChoice === 'heads' ? 'var(--heads-color)' : 'var(--tails-color)';
+                roundStatusEl.style.fontWeight = 'bold';
+            } else {
+                roundStatusEl.style.color = 'var(--accent-gold)';
+            }
+        }
+
+
+
+        function updateVoteDisplay() {
+            const totalVotes = gameState.votes.heads + gameState.votes.tails;
+            
+            if (totalVotes > 0) {
+                const headsPercentage = Math.round((gameState.votes.heads / totalVotes) * 100);
+                const tailsPercentage = 100 - headsPercentage;
+                
+                headsVotesEl.textContent = `${gameState.votes.heads} (${headsPercentage}%)`;
+                tailsVotesEl.textContent = `${gameState.votes.tails} (${tailsPercentage}%)`;
+                
+                headsBarEl.style.width = `${headsPercentage}%`;
+                tailsBarEl.style.width = `${tailsPercentage}%`;
+            } else {
+                headsVotesEl.textContent = "0 (0%)";
+                tailsVotesEl.textContent = "0 (0%)";
+                headsBarEl.style.width = "0%";
+                tailsBarEl.style.width = "0%";
+            }
+        }
+
+        function startVoteTimer() {
+            // Set initial timer display
+            updateVoteTimer();
+            
+            // Update timer every second
+            setInterval(() => {
+                updateVoteTimer();
+            }, 1000);
+        }
+
+        function updateVoteTimer() {
+            if (!gameState.roundStartTime) return;
+            
+            const now = new Date().getTime();
+            const elapsed = now - gameState.roundStartTime;
+            const timeLeft = Math.max(0, 20000 - elapsed);
+            
+            const secondsLeft = Math.ceil(timeLeft / 1000);
+            voteTimerEl.textContent = `Next round starts in: ${secondsLeft}s`;
+            
+            if (secondsLeft <= 1 || gameState.userVoted) {
+                voteHeadsBtn.disabled = true;
+                voteTailsBtn.disabled = true;
+            } else {
+                voteHeadsBtn.disabled = false;
+                voteTailsBtn.disabled = false;
+            }
+        }
+    function clearVoteIfNewRound() {
+        // Completely clear localStorage votes after each round
+        localStorage.removeItem('userVotes');
+    }      // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+</body>
+</html>
