@@ -6,13 +6,7 @@
     <style>
     
     /* Add this at the top of your style section */
-@font-face {
-    font-family: 'Joystix';
-    src: url('fonts/joystix monospace.woff2') format('woff2'),
-         url('fonts/joystix monospace.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
+
 
 /* Apply Joystix to all text elements */
 body, button, span, div {
@@ -592,10 +586,25 @@ const currentRoundEl = document.getElementById('current-round'); // Add this lin
                 voteTailsBtn.disabled = false;
             }
         }
-    function clearVoteIfNewRound() {
-        // Completely clear localStorage votes after each round
-        localStorage.removeItem('userVotes');
-    }      // Initialize when page loads
+function clearVoteIfNewRound() {
+        // Only clear votes from previous rounds, not current round
+        const savedVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+        
+        // Check if we have votes from previous rounds
+        const hasPreviousRoundVotes = Object.keys(savedVotes).some(round => 
+            parseInt(round) < gameState.currentRound
+        );
+        
+        if (hasPreviousRoundVotes) {
+            // Create new votes object with only current round vote (if exists)
+            const newVotes = {};
+            if (savedVotes[gameState.currentRound]) {
+                newVotes[gameState.currentRound] = savedVotes[gameState.currentRound];
+            }
+            
+            localStorage.setItem('userVotes', JSON.stringify(newVotes));
+            gameState.userVoted = newVotes[gameState.currentRound] !== undefined;
+        }}     // Initialize when page loads
         window.addEventListener('DOMContentLoaded', initializeGame);
     </script>
 </body>
