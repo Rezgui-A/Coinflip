@@ -488,12 +488,12 @@ function renderGame() {
     const totalGrids = columns * rows;
     const totalResults = gameState.results.length;
     
-    // Fill the grid row-wise (left to right, then top to bottom)
-    // and display results in reverse order (newest first)
+    // Fill the grid row-wise (left to right, top to bottom)
+    // with the FIRST result in the top-left and the LAST in the bottom-right
     for (let row = 1; row <= rows; row++) {
         for (let col = 1; col <= columns; col++) {
             const gridPosition = (row - 1) * columns + (col - 1);
-            const resultIndex = totalResults - 1 - gridPosition;
+            const resultIndex = gridPosition; // Direct mapping (no reversal)
             
             const resultEl = document.createElement('div');
             resultEl.className = 'history-item';
@@ -503,7 +503,7 @@ function renderGame() {
             resultEl.style.gridColumn = col;
             
             // Check if we have a result for this position
-            if (resultIndex >= 0 && resultIndex < totalResults) {
+            if (resultIndex < totalResults) {
                 const result = gameState.results[resultIndex];
                 const img = document.createElement('img');
                 
