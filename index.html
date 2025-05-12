@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="width=400, initial-scale=0.25, maximum-scale=0.25, user-scalable=no">    <title>Coin Flip</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
     
     /* Add this at the top of your style section */
@@ -14,12 +14,30 @@ body, button, span, div {
     letter-spacing: 1px;
 }
 body {
-    width: 800px;
-    margin: 0 auto;
-    transform-origin: top left;
-    transform: scale(1.2);
-    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
     background-color: black;
+    display: flex;
+    justify-content: center;
+
+}
+
+.wrapper {
+    width: 800px;
+    transform-origin: top center;
+    transform: scale(1);
+    transition: transform 0.3s ease;
+}
+@media (max-width: 768px) {
+    .wrapper {
+        transform: scale(0.85);
+    }
+}
+
+@media (max-width: 480px) {
+    .wrapper {
+        transform: scale(0.75);
+    }
 }
         .timer {
             background-image: url('images/bg-3.jpg');
@@ -143,7 +161,27 @@ body {
     color: gold;
     text-shadow: 2px 2px 0 #000;
 }
+.main-container {
+    width: 800px;
+    transform-origin: top center;
+    transform: scale(1.2);
+    transition: transform 0.3s ease;
+    
+}
 
+/* Tablet zoom out */
+@media (max-width: 768px) {
+    .main-container {
+        transform: scale(0.75);
+    }
+}
+
+/* Mobile zoom out more */
+@media (max-width: 480px) {
+    .main-container {
+        transform: scale(0.65);
+    }
+}
 .vote-container {
     display: flex;
     justify-content: space-between;
@@ -258,8 +296,9 @@ body {
 }
 .round-display {
     position: absolute;
-    bottom: 135px;
-    margin-left:460px;
+    bottom: 140px;
+    left: 72%;
+    transform: translateX(-50%);
     background-color: rgba(0, 0, 0, 0.7);
     padding: 8px 15px;
     border-radius: 5px;
@@ -268,18 +307,24 @@ body {
     color: gold;
     text-shadow: 2px 2px 0 #000;
     font-size: 1.2rem;
-    z-index: 3; /* Make sure it appears above the background */
+    z-index: 3;
 }
 
 .round-display span {
     color: white;
     margin-left: 10px;
 }
+.history-scale-wrapper {
+    width: 800px;
+    margin: 0 auto;
+    transform-origin: top center;
+    transform: scale(1);
+}
         /* Keep all other existing styles */
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="main-container">
         <div class="timer" id="vote-timer">20s before voting ends</div>
 
 
@@ -287,15 +332,14 @@ body {
             <div id="round-status"></div>
         </div>
 
+<div class="history-scale-wrapper">
     <div class="history-panel">
-        
         <div class="history-panel-background"></div>
         <div class="history-content">
             <div class="history-grid" id="game-board"></div>
         </div>
-
     </div>
-    </div>
+</div>
 <div class = "end">
 <div class="place-vote">
 
@@ -327,6 +371,7 @@ body {
 
     </div>
 </div></div>
+    </div>
 
     <script>
         // Game state
@@ -361,7 +406,7 @@ body {
         const roundStatusEl = document.getElementById('round-status');
 const currentRoundEl = document.getElementById('current-round'); // Add this line
         // API endpoints
-        const API_URL = 'http://localhost:3001/api';
+const API_URL = "https://coinflip-production-e982.up.railway.app/api";
 
         // Initialize game
         async function initializeGame() {
@@ -434,58 +479,56 @@ const currentRoundEl = document.getElementById('current-round'); // Add this lin
             }
         }
         // Render the game board
- function renderGame() {
-        gameBoard.innerHTML = '';
-        
-        // Create a 12x7 grid (84 positions)
-        const columns = 12;
-        const rows = 7;
-        const totalGrids = columns * rows;
-        
-        // Fill the grid column-wise (top to bottom, then left to right)
-        for (let col = 1; col <= columns; col++) {
-            for (let row = 1; row <= rows; row++) {
-                const positionIndex = (col - 1) * rows + (row - 1);
-                const resultEl = document.createElement('div');
-                resultEl.className = 'history-item';
+function renderGame() {
+    gameBoard.innerHTML = '';
+    
+    // Create a 12x7 grid (84 positions)
+    const columns = 12;
+    const rows = 7;
+    const totalGrids = columns * rows;
+    const totalResults = gameState.results.length;
+    
+    // Fill the grid column-wise (top to bottom, then left to right)
+    // but display results in reverse order (newest first)
+    for (let col = 1; col <= columns; col++) {
+        for (let row = 1; row <= rows; row++) {
+            const gridPosition = (col - 1) * rows + (row - 1);
+            const resultIndex = totalResults - 1 - gridPosition;
+            
+            const resultEl = document.createElement('div');
+            resultEl.className = 'history-item';
+            
+            // Position the item in the grid
+            resultEl.style.gridRow = row;
+            resultEl.style.gridColumn = col;
+            
+            // Check if we have a result for this position
+            if (resultIndex >= 0 && resultIndex < totalResults) {
+                const result = gameState.results[resultIndex];
+                const img = document.createElement('img');
                 
-                // Position the item in the grid
-                resultEl.style.gridRow = row;
-                resultEl.style.gridColumn = col;
-                
-                // Check if we have a result for this position
-                if (positionIndex < gameState.results.length) {
-                    const result = gameState.results[positionIndex];
-                    const img = document.createElement('img');
-                    
-                    if (result === 'H') {
-                        img.src = 'images/banker.png';
-                        img.alt = 'Banker';
-                        resultEl.classList.add('heads');
-                    } else if (result === 'T') {
-                        img.src = 'images/player.png';
-                        img.alt = 'Player';
-                        resultEl.classList.add('tails');
-                    } else {
-                        img.src = 'images/tie.png';
-                        img.alt = 'Tie';
-                        resultEl.classList.add('tie');
-                    }
-                    
-                    img.className = 'coin-image';
-                    resultEl.appendChild(img);
+                if (result === 'H') {
+                    img.src = 'images/banker.png';
+                    img.alt = 'Banker';
+                    resultEl.classList.add('heads');
+                } else if (result === 'T') {
+                    img.src = 'images/player.png';
+                    img.alt = 'Player';
+                    resultEl.classList.add('tails');
+                } else {
+                    img.src = 'images/tie.png';
+                    img.alt = 'Tie';
+                    resultEl.classList.add('tie');
                 }
                 
-                gameBoard.appendChild(resultEl);
+                img.className = 'coin-image';
+                resultEl.appendChild(img);
             }
+            
+            gameBoard.appendChild(resultEl);
         }
     }
- 
-
-
-
-
-  
+}
 
         // Start the game loop
         function startGame() {
@@ -576,7 +619,7 @@ const currentRoundEl = document.getElementById('current-round'); // Add this lin
             const timeLeft = Math.max(0, 20000 - elapsed);
             
             const secondsLeft = Math.ceil(timeLeft / 1000);
-            voteTimerEl.textContent = `Next round starts in: ${secondsLeft}s`;
+            voteTimerEl.textContent = `${secondsLeft}s before voting ends`;
             
             if (secondsLeft <= 1 || gameState.userVoted) {
                 voteHeadsBtn.disabled = true;
