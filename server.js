@@ -21,7 +21,9 @@ let gameState = {
 app.get('/api/game', (req, res) => {
     res.json(gameState);
 });
-
+app.get('/api/time', (req, res) => {
+    res.json({ serverTime: Date.now() });
+});
 // Submit a vote
 app.post('/api/vote', (req, res) => {
     const { choice } = req.body;

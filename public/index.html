@@ -415,12 +415,21 @@ const API_URL = "https://coinflip-production-e982.up.railway.app/api";
             
             // Fetch current game state from server
             await fetchGameState();
-            
+                await fetchServerTime();
+
             // Start game loop
             startGame();
             startVoting();
         }
-
+async function fetchServerTime() {
+    try {
+        const response = await fetch(`${API_URL}/time`);
+        const data = await response.json();
+        gameState.serverTime = data.serverTime; // Store server time
+    } catch (error) {
+        console.error('Error fetching server time:', error);
+    }
+}
         // Fetch game state from server
         async function fetchGameState() {
             try {
@@ -433,6 +442,7 @@ const API_URL = "https://coinflip-production-e982.up.railway.app/api";
                 gameState.votes = data.votes;
                 gameState.roundStartTime = new Date(data.roundStartTime).getTime();
                         currentRoundEl.textContent = gameState.currentRound; // Add this line
+                        
 
                 // Calculate stats
                 gameState.headsCount = gameState.results.filter(r => r === 'H').length;
@@ -610,25 +620,25 @@ function renderGame() {
                 updateVoteTimer();
             }, 1000);
         }
+function updateVoteTimer() {
+    if (!gameState.roundStartTime || !gameState.serverTime) return;
+    
+    const now = gameState.serverTime + (new Date().getTime() - gameState.roundStartTime);
+    const elapsed = now - gameState.roundStartTime;
+    const timeLeft = Math.max(0, 20000 - elapsed);
+    
+    const secondsLeft = Math.ceil(timeLeft / 1000);
+    voteTimerEl.textContent = `${secondsLeft}s before voting ends`;
+    
+    if (secondsLeft <= 1 || gameState.userVoted) {
+        voteHeadsBtn.disabled = true;
+        voteTailsBtn.disabled = true;
+    } else {
+        voteHeadsBtn.disabled = false;
+        voteTailsBtn.disabled = false;
+    }
+}
 
-        function updateVoteTimer() {
-            if (!gameState.roundStartTime) return;
-            
-            const now = new Date().getTime();
-            const elapsed = now - gameState.roundStartTime;
-            const timeLeft = Math.max(0, 20000 - elapsed);
-            
-            const secondsLeft = Math.ceil(timeLeft / 1000);
-            voteTimerEl.textContent = `${secondsLeft}s before voting ends`;
-            
-            if (secondsLeft <= 1 || gameState.userVoted) {
-                voteHeadsBtn.disabled = true;
-                voteTailsBtn.disabled = true;
-            } else {
-                voteHeadsBtn.disabled = false;
-                voteTailsBtn.disabled = false;
-            }
-        }
 function clearVoteIfNewRound() {
         // Only clear votes from previous rounds, not current round
         const savedVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
