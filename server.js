@@ -18,12 +18,18 @@ let gameState = {
 };
 
 // Get current game state
+// In your /api/game endpoint
 app.get('/api/game', (req, res) => {
-    res.json(gameState);
+    const now = Date.now();
+    const elapsed = now - gameState.roundStartTime;
+    const timeLeft = Math.max(0, 20000 - elapsed);
+    
+    res.json({
+        ...gameState,
+        timeLeft: timeLeft // Add this line
+    });
 });
-app.get('/api/time', (req, res) => {
-    res.json({ serverTime: Date.now() });
-});
+
 // Submit a vote
 app.post('/api/vote', (req, res) => {
     const { choice } = req.body;
