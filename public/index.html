@@ -488,11 +488,11 @@ function renderGame() {
     const totalGrids = columns * rows;
     const totalResults = gameState.results.length;
     
-    // Fill the grid column-wise (top to bottom, then left to right)
-    // but display results in reverse order (newest first)
-    for (let col = 1; col <= columns; col++) {
-        for (let row = 1; row <= rows; row++) {
-            const gridPosition = (col - 1) * rows + (row - 1);
+    // Fill the grid row-wise (left to right, then top to bottom)
+    // and display results in reverse order (newest first)
+    for (let row = 1; row <= rows; row++) {
+        for (let col = 1; col <= columns; col++) {
+            const gridPosition = (row - 1) * columns + (col - 1);
             const resultIndex = totalResults - 1 - gridPosition;
             
             const resultEl = document.createElement('div');
